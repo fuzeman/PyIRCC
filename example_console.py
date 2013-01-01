@@ -2,6 +2,7 @@ import time
 from twisted.internet import reactor
 from device import Device
 from lib.PyUPnP import SSDP_MSearch, UPnP
+import unr
 
 __author__ = 'Dean Gardiner'
 
@@ -34,13 +35,23 @@ def main():
         c = Device()
         c.connect(device.location, service.SCPDURL, service.controlURL)
 
+        tr = None
+
+        if not c.unr.isFunctionSupported(c.unr.register):
+            print "register not supported"
+            return
+        tr = c.unr.register("PyIRCC Console")
+        if tr != unr.UNR_REGISTER_RESULT_OK:
+            print "registration declined by device"
+            return
+
     def selectService(numServices):
         deviceNum = None
         while deviceNum is None:
             n = raw_input('>>> ')
             try:
                 n = int(n)
-                if n > 0 and n <= numServices:
+                if 0 < n <= numServices:
                     deviceNum = n
             except ValueError:
                 continue

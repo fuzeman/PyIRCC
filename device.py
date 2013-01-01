@@ -14,7 +14,7 @@ class Device():
         self.unr = None
 
     def connect(self, deviceDescriptionURL, irccServiceDescURL=None, irccServiceControlURL=None):
-        print "IRCC.connect(", deviceDescriptionURL, ",", irccServiceDescURL, ",", irccServiceControlURL, ")"
+        print "Device.connect(", deviceDescriptionURL, ",", irccServiceDescURL, ",", irccServiceControlURL, ")"
         self._parseDeviceDescription(deviceDescriptionURL)
 
         if self.deviceInfo.irccVersion in ircc.SUPPORTED_VERSIONS and\
