@@ -9,11 +9,12 @@ class NotSupportedError(BaseException):
 
 
 class SupportBase():
-    def __init__(self):
+    def __init__(self, force=False):
         self.supportedFunctions = []
+        self.force = force
 
     def isSupported(self, name):
-        return name in self.supportedFunctions
+        return (name in self.supportedFunctions) or self.force
 
     def isFunctionSupported(self, function):
         if not isinstance(function, functools.partial):

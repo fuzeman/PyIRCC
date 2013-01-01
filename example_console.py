@@ -1,3 +1,4 @@
+import pprint
 import time
 from twisted.internet import reactor
 from device import Device
@@ -37,13 +38,23 @@ def main():
 
         tr = None
 
+        # register
         if not c.unr.isFunctionSupported(c.unr.register):
-            print "register not supported"
+            print "'register' not supported"
             return
         tr = c.unr.register("PyIRCC Console")
         if tr != unr.UNR_REGISTER_RESULT_OK:
             print "registration declined by device"
             return
+
+        print "system name:", c.unr.systemInformation.name
+
+        # getRemoteCommandList
+        if not c.unr.isFunctionSupported(c.unr.getRemoteCommandList):
+            print "'getRemoteCommandList' not supported"
+            return
+        tr = c.unr.getRemoteCommandList()
+        pprint.pprint(tr)
 
     def selectService(numServices):
         deviceNum = None

@@ -19,9 +19,7 @@ def get_xml(url):
 
 
 def http_get(baseUrl, headers, **kwargs):
-    print baseUrl
     url = urlparse.urljoin(baseUrl, '?' + url_query_join(**kwargs))
-    print url
 
     request = urllib2.Request(url=url, headers=headers)
     conn = urllib2.urlopen(request)
@@ -36,3 +34,17 @@ def url_query_join(**kwargs):
     for k, v in kwargs.items():
         args.append('='.join((k, urllib.quote_plus(v))))
     return '&'.join(args)
+
+
+def class_string(class_name, newLines=True, **kwargs):
+    output = []
+    for k, v in kwargs.items():
+        if isinstance(v, str):
+            output.append('\t' + str(k) + ': "' + v + '"')
+        else:
+            output.append('\t' + str(k) + ': ' + str(v))
+
+    if newLines:
+        return '<' + class_name + '\n' + '\n'.join(output) + '\n>'
+    else:
+        return '<' + class_name + ' ' + ','.join(output) + ' >'

@@ -2,7 +2,8 @@ import urllib
 import urllib2
 import urlparse
 from support import supported, SupportBase, NotSupportedError
-from util import get_xml, url_query_join, http_get
+from util import get_xml, url_query_join, http_get, class_string
+import xml.etree.ElementTree as et
 
 __author__ = 'Dean Gardiner'
 
@@ -13,32 +14,61 @@ UNR_REGISTER_RESULT_OK = 0  # OK
 UNR_REGISTER_RESULT_DECLINED = -1  # Registration was declined by device.
 
 
+class NotRegisteredError(BaseException):
+    pass
+
+
 class DeviceControl_UNR(SupportBase):
-    def __init__(self, deviceInfo):
-        SupportBase.__init__(self)
+    def __init__(self, deviceInfo, force=False):
+        SupportBase.__init__(self, force=force)
         self.deviceInfo = deviceInfo
         self.version = self.deviceInfo.unrVersion
 
         self.actionUrls = {}
         self._parseActionList()
 
-        self.headers = {
-            'X-CERS-DEVICE-ID': "PyIRCC:00-00-00-00-00-00",
-            'X-CERS-DEVICE-INFO': "Android4.0.4/MediaRemoteForAndroid3.4.2/HTC Vision"
-        }
+        self.headers = None
+
+        self.deviceId = None  # from register()
+        self.registered = False
+
+        self.systemInformation = None  # from [getSystemInformation]
+        self.remoteCommands = None  # from [getRemoteCommandList]
 
         print "construct unr"
+
+    @supported
+    def getSystemInformation(self):
+        print "getSystemInformation"
+
+        if self.version == '1.2' or self.force:
+            result = None
+            try:
+                result = http_get(self.actionUrls['getSystemInformation'], {})  # No headers to send yet.
+            except urllib2.HTTPError, e:
+                print e
+                raise NotImplementedError()
+
+            xml = et.fromstring(result)
+            if xml is None:
+                return None
+
+            self.systemInformation = UNR_SystemInformationResult(xml)
+            return self.systemInformation
+        raise NotSupportedError()
 
     @supported
     def register(self, name="PyIRCC", registrationType='initial', deviceId="PyIRCC:00-00-00-00-00-00"):
         print "register", name, registrationType, deviceId
 
-        if self.version == '1.2':
-            resultData = None
+        self.deviceName = name
+        self.deviceId = deviceId
+
+        if self.version == '1.2' or self.force:
             try:
-                resultData = http_get(
+                http_get(
                     self.actionUrls['register'],
-                    self.headers,
+                    self.getActionHeaders(),
                     name=name,
                     registrationType=registrationType,
                     deviceId=deviceId
@@ -50,9 +80,49 @@ class DeviceControl_UNR(SupportBase):
                 else:
                     raise NotImplementedError()
 
+            self.registered = True
             return UNR_REGISTER_RESULT_OK
-        else:
-            raise NotSupportedError()
+        raise NotSupportedError()
+
+    @supported
+    def getRemoteCommandList(self):
+        print "getRemoteCommandList"
+        if self.version == '1.2' or self.force:
+            result = None
+            try:
+                result = http_get(self.actionUrls['getRemoteCommandList'],
+                                  self.getActionHeaders())
+            except urllib2.HTTPError, e:
+                print e
+                raise NotImplementedError()
+
+            if not result:
+                raise NotImplementedError()
+
+            xml = et.fromstring(result)
+
+            self.remoteCommands = {}
+            for commandElement in xml.iterfind("command"):
+                command = UNR_RemoteCommand(commandElement)
+                self.remoteCommands[command.name] = command
+
+            return self.remoteCommands
+
+    def getActionHeaders(self):
+        if self.headers is None:
+            if self.systemInformation is None:
+                self.getSystemInformation()  # We need system information to build headers
+
+            if self.deviceId is None:
+                raise NotRegisteredError()
+
+            self.headers = {
+                'X-' + self.systemInformation.actionHeader: self.deviceId
+            }
+
+            print "headers built"
+        return self.headers
+
 
     def _parseActionList(self):
         xml = get_xml(self.deviceInfo.unrCersActionUrl)
@@ -63,4 +133,73 @@ class DeviceControl_UNR(SupportBase):
             self.supportedFunctions.append(name)
             if self.actionUrls.has_key(name):
                 raise Exception()
-            self.actionUrls[name] = action.get('url').replace(':80:80', ':80')
+            self.actionUrls[name] = action.get('url').replace(':80:80', ':80')  # TODO: what is happening here?
+
+
+class UNR_SystemInformationResult():
+    def __init__(self, xml_element):
+        self.name = xml_element.findtext('name')
+        self.generation = xml_element.findtext('generation')
+        self.modelName = xml_element.findtext('modelName')
+
+        self.area = xml_element.findtext('area')
+        self.language = xml_element.findtext('language')
+        self.country = xml_element.findtext('country')
+
+        self.actionHeader = xml_element.find('actionHeader').get('name')
+
+        self.supportedSources = []
+        for e in xml_element.find('supportSource').iterfind('source'):
+            self.supportedSources.append(e.text.lower())
+
+        self.supportedContents = []
+        for e in xml_element.find('supportContentsClass').iterfind('class'):
+            self.supportedContents.append(e.text.lower())
+
+        self.supportedFunctions = []
+        for e in xml_element.find('supportFunction').iterfind('function'):
+            self.supportedFunctions.append(e.get('name').lower())
+
+    def __str__(self):
+        return class_string('UNR_SystemInformationResult',
+                            name=self.name,
+                            generation=self.generation,
+                            modelName=self.modelName,
+                            area=self.area,
+                            languge=self.language,
+                            country=self.country,
+                            actionHeader=self.actionHeader,
+                            supportedSources=self.supportedSources,
+                            supportedContents=self.supportedContents,
+                            supportedFunctions=self.supportedFunctions)
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class UNR_RemoteCommand():
+    TYPE_IRCC = 0
+    TYPE_URL = 1
+
+    def __init__(self, xml_element):
+        self.name = xml_element.get('name')
+
+        self.type = xml_element.get('type')
+        if str(self.type).lower() == 'ircc':
+            self.type = UNR_RemoteCommand.TYPE_IRCC
+        elif str(self.type).lower() == 'url':
+            self.type = UNR_RemoteCommand.TYPE_URL
+        else:
+            raise NotImplementedError()
+
+        self.value = xml_element.get('value')
+
+    def __str__(self):
+        return class_string('UNR_RemoteCommand',
+                            newLines=False,
+                            name=self.name,
+                            type=self.type,
+                            value=self.value)
+
+    def __repr__(self):
+        return self.__str__()
