@@ -13,19 +13,24 @@ class Device():
         self.ircc = None
         self.unr = None
 
-    def connect(self, deviceDescriptionURL, irccServiceDescURL=None, irccServiceControlURL=None):
+    @staticmethod
+    def connect(deviceDescriptionURL, irccServiceDescURL=None, irccServiceControlURL=None):
         print "Device.connect(", deviceDescriptionURL, ",", irccServiceDescURL, ",", irccServiceControlURL, ")"
-        self._parseDeviceDescription(deviceDescriptionURL)
+
+        device = Device()
+        device._parseDeviceDescription(deviceDescriptionURL)
 
         # UNR / CERS
-        if self.deviceInfo.unrVersion in unr.SUPPORTED_VERSIONS:
-            self.unr = unr.DeviceControl_UNR(self)
+        if device.deviceInfo.unrVersion in unr.SUPPORTED_VERSIONS:
+            device.unr = unr.DeviceControl_UNR(device)
 
         # IRCC
-        if self.deviceInfo.irccVersion in ircc.SUPPORTED_VERSIONS and\
+        if device.deviceInfo.irccVersion in ircc.SUPPORTED_VERSIONS and\
                 irccServiceDescURL is not None and\
                 irccServiceControlURL is not None:
-            self.ircc = ircc.DeviceControl_IRCC(self, irccServiceDescURL, irccServiceControlURL)
+            device.ircc = ircc.DeviceControl_IRCC(device, irccServiceDescURL, irccServiceControlURL)
+
+        return device
 
     def _parseDeviceDescription(self, deviceDescriptionURL):
         xml = get_xml(deviceDescriptionURL)

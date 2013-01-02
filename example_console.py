@@ -34,8 +34,7 @@ def main():
 
         tr = None  # Temporary variable for results
 
-        c = Device()
-        c.connect(device.location, service.SCPDURL, service.controlURL)
+        c = Device.connect(device.location, service.SCPDURL, service.controlURL)
 
         # register
         if not c.unr.isFunctionSupported(c.unr.register):
