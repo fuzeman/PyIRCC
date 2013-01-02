@@ -26,14 +26,12 @@ Compatible Products
 https://play.google.com/store/apps/details?id=com.sony.seconddisplay.view
 
 
-**Confirmed Products**
+**Confirmed Support**
 
-+------------------------+------------+---------------------------+
-| Range                  | Series     | Device Info               |
 +------------------------+------------+------+-----+------+-------+
-|                        |            | IRCC | UNR | RDIS | S2MTV |
+| Range                  | Series     | IRCC | UNR | RDIS | S2MTV |
 +========================+============+======+=====+======+=======+
-| **BRAVIA**             |            |                           |
+| *BRAVIA*               |            |                           |
 +------------------------+------------+------+-----+------+-------+
 |                        | EX32       | 1.0  | 1.2 | 1.0  | 1.0   |
 +------------------------+------------+------+-----+------+-------+
