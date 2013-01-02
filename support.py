@@ -1,4 +1,5 @@
 import functools
+from decorator import decorator
 
 __author__ = 'Dean Gardiner'
 
@@ -8,19 +9,34 @@ class NotSupportedError(BaseException):
 
 
 class SupportBase():
+    """SupportBase
+
+    :param force: Force functions to be supported
+    """
     def __init__(self, force=False):
         self.supportedFunctions = []
         self.force = force
 
     def isSupported(self, name):
+        """Is function supported (by name)?
+
+        :param name: Function Name
+        """
         return (name in self.supportedFunctions) or self.force
 
     def isFunctionSupported(self, function):
+        """Is function supported (by function reference)?
+
+        :param function: Function Reference
+
+        :raises: :class:`ircc.InvalidArgumentError`
+        """
         if not isinstance(function, functools.partial):
-            raise Exception()
+            raise NotSupportedError()
         return self.isSupported(function.args[0].f.__name__)
 
 
+@decorator
 class supported(object):
     def __init__(self, f):
         self.f = f

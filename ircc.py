@@ -1,12 +1,10 @@
 from pysimplesoap.client import SoapClient, SoapFault
-from win32com.client.build import NotSupportedException
-from support import SupportBase, supported
+from support import SupportBase, supported, NotSupportedError
 from unr import UNR_RemoteCommand
 from util import get_xml, http_get
 from spec import UPNP_XML_SCHEMA_SERVICE as S_SER, SONY_UPNP_URN_IRCC
 
 __author__ = 'Dean Gardiner'
-
 
 SUPPORTED_VERSIONS = ('1.0',)
 
@@ -16,16 +14,27 @@ class InvalidArgumentError(BaseException):
 
 
 class DeviceControl_IRCC(SupportBase):
+    """DeviceControl IRCC
+
+    :ivar device.Device device: Connected Device
+
+    :ivar string descriptionUrl: IRCC Service Description URL
+    :ivar string controlUrl: IRCC Service Control URL
+    :ivar boolean force: Ignore method support limitations
+    """
+
     def __init__(self, device, descriptionUrl, controlUrl, force=False):
         SupportBase.__init__(self, force=force)
         self.device = device
         self.deviceInfo = device.deviceInfo
+        #: (`string`) - IRCC Version
         self.version = self.deviceInfo.irccVersion
 
         self.controlUrl = controlUrl
 
         self.client = None
 
+        #: (`{actionName: {argumentName: argumentDirection}}`) - Available Actions
         self.actionInfo = {}
         self._parseDescription(descriptionUrl)
 
@@ -35,7 +44,7 @@ class DeviceControl_IRCC(SupportBase):
         if self.device.unr.remoteCommands is None:
             if not self.device.unr.isFunctionSupported(self.device.unr.getRemoteCommandList):
                 print "'getRemoteCommandList' not supported"
-                raise NotSupportedException()
+                raise NotSupportedError()
             self.device.unr.getRemoteCommandList()
             print "remoteCommands loaded"
 
@@ -50,6 +59,13 @@ class DeviceControl_IRCC(SupportBase):
 
     @supported
     def sendIRCC(self, codeName):
+        """Send Remote Command
+
+        :param codeName: Command Name
+        :type codeName: string
+
+        :raises: :class:`ircc.InvalidArgumentError`, NotImplementedError
+        """
         print ">>> sendIRCC", codeName
 
         if codeName is None:
@@ -96,7 +112,7 @@ class DeviceControl_IRCC(SupportBase):
             xArgumentList = xAction.find(S_SER + 'argumentList')
             for xArgument in xArgumentList.iterfind(S_SER + 'argument'):
                 argumentName = xArgument.findtext(S_SER + 'name')
-                argumentDirection =  xArgument.findtext(S_SER + 'direction')
+                argumentDirection = xArgument.findtext(S_SER + 'direction')
 
                 if self.actionInfo[actionName].has_key(argumentName):
                     raise Exception()

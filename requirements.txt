@@ -1,1 +1,2 @@
 pysimplesoap==1.05a
+decorator==3.4.0

@@ -17,27 +17,47 @@ class NotRegisteredError(BaseException):
 
 
 class DeviceControl_UNR(SupportBase):
+    """DeviceControl UNR
+
+    :ivar device.Device device: Connected Device
+    :ivar boolean force: Ignore method support limitations
+    """
     def __init__(self, device, force=False):
         SupportBase.__init__(self, force=force)
         self.device = device
         self.deviceInfo = device.deviceInfo
+
+        #: ( string ) - UNR Version
         self.version = self.deviceInfo.unrVersion
 
+        #: ( `{ actionName: actionURL }` ) - Available action URLs
         self.actionUrls = {}
         self._parseActionList()
 
         self.headers = None
 
+        #: ( string ) - Registered Device ID
         self.deviceId = None  # from register()
+
+        #: ( bool ) - Device currently registered?
         self.registered = False
 
+        #: ( :class:`unr.UNR_SystemInformationResult` ) -
+        #: System Information from :func:`DeviceControl_UNR.getSystemInformation`
         self.systemInformation = None  # from [getSystemInformation]
+
+        #: ( [ :class:`unr.UNR_RemoteCommand` ] ) -
+        #: Available remote commands from :func:`DeviceControl_UNR.getRemoteCommandList`
         self.remoteCommands = None  # from [getRemoteCommandList]
 
         print "construct unr"
 
     @supported
     def getSystemInformation(self):
+        """Get Device System Information
+
+        :raises: :class:`support.NotSupportedError`, :class:`NotImplementedError`
+        """
         print ">>> getSystemInformation"
 
         if self.version == '1.2' or self.force:
@@ -58,6 +78,19 @@ class DeviceControl_UNR(SupportBase):
 
     @supported
     def register(self, name="PyIRCC", registrationType='initial', deviceId="PyIRCC:00-00-00-00-00-00"):
+        """Register with Device
+
+        :param name: Control Name
+        :type name: string
+
+        :param registrationType: Control Registration Type
+        :type registrationType: 'initial'
+
+        :param deviceId: Control Device ID
+        :type deviceId: string
+
+        :raises: :class:`support.NotSupportedError`, :class:`NotImplementedError`
+        """
         print ">>> register", name, registrationType, deviceId
 
         self.deviceName = name
@@ -85,6 +118,10 @@ class DeviceControl_UNR(SupportBase):
 
     @supported
     def getRemoteCommandList(self):
+        """Get Device Remote Commands
+
+        :raises: :class:`support.NotSupportedError`, :class:`NotImplementedError`
+        """
         print ">>> getRemoteCommandList"
         if self.version == '1.2' or self.force:
             result = None
@@ -108,6 +145,7 @@ class DeviceControl_UNR(SupportBase):
             return self.remoteCommands
 
     def getActionHeaders(self):
+        """Get HTTP Action Headers"""
         if self.headers is None:
             if self.systemInformation is None:
                 self.getSystemInformation()  # We need system information to build headers
@@ -135,6 +173,10 @@ class DeviceControl_UNR(SupportBase):
 
 
 class UNR_SystemInformationResult():
+    """:func:`DeviceControl_UNR.getSystemInformation` Result
+
+    :param xml_element: Result Element Tree
+    """
     def __init__(self, xml_element):
         self.name = xml_element.findtext('name')
         self.generation = xml_element.findtext('generation')
@@ -176,6 +218,10 @@ class UNR_SystemInformationResult():
 
 
 class UNR_RemoteCommand():
+    """:func:`DeviceControl_UNR.getRemoteCommandList` Result Item
+
+    :param xml_element: Result Element Tree
+    """
     TYPE_IRCC = 0
     TYPE_URL = 1
 

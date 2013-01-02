@@ -7,14 +7,33 @@ __author__ = 'Dean Gardiner'
 
 
 class Device():
+    """Control Device"""
+
     def __init__(self):
+        #: (:class:`device.DeviceInfo`) Device Information
         self.deviceInfo = DeviceInfo()
 
+        #: (:class:`ircc.DeviceControl_IRCC`) IRCC Service
         self.ircc = None
+
+        #: (:class:`unr.DeviceControl_UNR`) UNR Service
         self.unr = None
 
     @staticmethod
     def connect(deviceDescriptionURL, irccServiceDescURL=None, irccServiceControlURL=None):
+        """Connect to device.
+
+        :param deviceDescriptionURL: UPnP Device Description URL (device location)
+        :type deviceDescriptionURL: string
+
+        :param irccServiceDescURL: IRCC Service Description URL (service SCPDURL)
+        :type irccServiceDescURL: string or None
+
+        :param irccServiceControlURL: IRCC Service Control URL (service controlURL)
+        :type irccServiceControlURL: string or None
+
+        :rtype: Device
+        """
         print "Device.connect(", deviceDescriptionURL, ",", irccServiceDescURL, ",", irccServiceControlURL, ")"
 
         device = Device()
@@ -26,8 +45,8 @@ class Device():
 
         # IRCC
         if device.deviceInfo.irccVersion in ircc.SUPPORTED_VERSIONS and\
-                irccServiceDescURL is not None and\
-                irccServiceControlURL is not None:
+           irccServiceDescURL is not None and\
+           irccServiceControlURL is not None:
             device.ircc = ircc.DeviceControl_IRCC(device, irccServiceDescURL, irccServiceControlURL)
 
         return device
@@ -65,24 +84,26 @@ class Device():
 
 
 class DeviceInfo():
-    def __int__(self):
+    """Control Device Information"""
+
+    def __init__(self):
         # IRCC
-        self.irccVersion = None
-        self.irccCategories = None
+        self.irccVersion = None  #: IRCC Service Version *(X_IRCC_Version)*
+        self.irccCategories = None #: IRCC Categories *(X_IRCC_Category)*
 
         # UNR / CERS
-        self.unrVersion = None
-        self.unrCersActionUrl = None
+        self.unrVersion = None  #: UNR Service Version *(X_UNR_Version)*
+        self.unrCersActionUrl = None  #: UNR Cers Action URL *(X_CERS_ActionList_URL)*
 
         #  RDIS
-        self.rdisVersion = None
-        self.rdisSessionControl = None
-        self.rdisEntryPort = None
+        self.rdisVersion = None  #: RDIS Service Version *(X_RDIS_Version)*
+        self.rdisSessionControl = None  #: RDIS Session Control Enabled *(X_RDIS_SESSION_CONTROL)*
+        self.rdisEntryPort = None  #: RDIS Session Entry Port *(X_RDIS_ENTRY_PORT)*
 
         # S2MTV
-        self.s2mtvVersion = None
-        self.s2mtvBaseUrl = None
+        self.s2mtvVersion = None  #: S2MTV Service Version *(X_S2MTV_Version)*
+        self.s2mtvBaseUrl = None  #: S2MTV Base URL *(X_S2MTV_BaseURL)*
 
         # Other
-        self.maxBgmCount = None
-        self.standardDmr = None
+        self.maxBgmCount = None  #: Max BGM Count *(X_MaxBGMCount)*
+        self.standardDmr = None  #: Standard DMR Version *(X_StandardDMR)*
