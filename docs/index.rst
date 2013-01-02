@@ -26,7 +26,8 @@ Compatible Products
 https://play.google.com/store/apps/details?id=com.sony.seconddisplay.view
 
 
-**Confirmed Support**
+Verified Support
+~~~~~~~~~~~~~~~~~~~~~~
 
 +------------------------+------------+------+-----+------+-------+
 | Range                  | Series     | IRCC | UNR | RDIS | S2MTV |
@@ -35,6 +36,7 @@ https://play.google.com/store/apps/details?id=com.sony.seconddisplay.view
 +------------------------+------------+------+-----+------+-------+
 |                        | EX32       | 1.0  | 1.2 | 1.0  | 1.0   |
 +------------------------+------------+------+-----+------+-------+
+
 
 Indices and tables
 ==================
