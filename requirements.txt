@@ -1,0 +1,1 @@
+pysimplesoap==1.05a

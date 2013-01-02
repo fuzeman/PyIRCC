@@ -1,8 +1,6 @@
-import urllib
 import urllib2
-import urlparse
 from support import supported, SupportBase, NotSupportedError
-from util import get_xml, url_query_join, http_get, class_string
+from util import get_xml, http_get, class_string
 import xml.etree.ElementTree as et
 
 __author__ = 'Dean Gardiner'
@@ -19,9 +17,10 @@ class NotRegisteredError(BaseException):
 
 
 class DeviceControl_UNR(SupportBase):
-    def __init__(self, deviceInfo, force=False):
+    def __init__(self, device, force=False):
         SupportBase.__init__(self, force=force)
-        self.deviceInfo = deviceInfo
+        self.device = device
+        self.deviceInfo = device.deviceInfo
         self.version = self.deviceInfo.unrVersion
 
         self.actionUrls = {}
@@ -39,7 +38,7 @@ class DeviceControl_UNR(SupportBase):
 
     @supported
     def getSystemInformation(self):
-        print "getSystemInformation"
+        print ">>> getSystemInformation"
 
         if self.version == '1.2' or self.force:
             result = None
@@ -59,7 +58,7 @@ class DeviceControl_UNR(SupportBase):
 
     @supported
     def register(self, name="PyIRCC", registrationType='initial', deviceId="PyIRCC:00-00-00-00-00-00"):
-        print "register", name, registrationType, deviceId
+        print ">>> register", name, registrationType, deviceId
 
         self.deviceName = name
         self.deviceId = deviceId
@@ -86,7 +85,7 @@ class DeviceControl_UNR(SupportBase):
 
     @supported
     def getRemoteCommandList(self):
-        print "getRemoteCommandList"
+        print ">>> getRemoteCommandList"
         if self.version == '1.2' or self.force:
             result = None
             try:
@@ -122,7 +121,6 @@ class DeviceControl_UNR(SupportBase):
 
             print "headers built"
         return self.headers
-
 
     def _parseActionList(self):
         xml = get_xml(self.deviceInfo.unrCersActionUrl)
@@ -193,6 +191,8 @@ class UNR_RemoteCommand():
             raise NotImplementedError()
 
         self.value = xml_element.get('value')
+        if self.type == UNR_RemoteCommand.TYPE_URL:
+            self.value = self.value.replace(':80:80', ':80')  # TODO: what is happening here?
 
     def __str__(self):
         return class_string('UNR_RemoteCommand',

@@ -1,8 +1,7 @@
-import pprint
-import time
 from twisted.internet import reactor
 from device import Device
 from lib.PyUPnP import SSDP_MSearch, UPnP
+from spec import SONY_UPNP_URN_IRCC
 import unr
 
 __author__ = 'Dean Gardiner'
@@ -33,10 +32,10 @@ def main():
         device, service = irccCompatible[n - 1]
         print device, service
 
+        tr = None  # Temporary variable for results
+
         c = Device()
         c.connect(device.location, service.SCPDURL, service.controlURL)
-
-        tr = None
 
         # register
         if not c.unr.isFunctionSupported(c.unr.register):
@@ -47,14 +46,11 @@ def main():
             print "registration declined by device"
             return
 
-        print "system name:", c.unr.systemInformation.name
-
-        # getRemoteCommandList
-        if not c.unr.isFunctionSupported(c.unr.getRemoteCommandList):
-            print "'getRemoteCommandList' not supported"
+        # Send IRCC Command (X_SendIRCC)
+        if not c.ircc.isFunctionSupported(c.ircc.sendIRCC):
+            print "'sendIRCC' not supported"
             return
-        tr = c.unr.getRemoteCommandList()
-        pprint.pprint(tr)
+        tr = c.ircc.sendIRCC('Tv_Radio')
 
     def selectService(numServices):
         deviceNum = None
@@ -71,7 +67,7 @@ def main():
     print "searching..."
     SSDP_MSearch.search(
         cbFoundDevice=foundDevice, cbFinishedSearching=finishedSearching,
-        target='urn:schemas-sony-com:service:IRCC:1', debug=True, stopDelay=5)
+        target=SONY_UPNP_URN_IRCC, debug=True, stopDelay=5)
 
     reactor.run()
 

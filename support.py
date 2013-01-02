@@ -1,5 +1,4 @@
 import functools
-import inspect
 
 __author__ = 'Dean Gardiner'
 

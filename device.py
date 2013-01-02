@@ -1,5 +1,5 @@
 import ircc
-from spec import SCHEMA_SONY_AV as S_AV
+from spec import SONY_XML_SCHEMA_AV as S_AV
 import unr
 from util import get_xml
 
@@ -17,13 +17,15 @@ class Device():
         print "Device.connect(", deviceDescriptionURL, ",", irccServiceDescURL, ",", irccServiceControlURL, ")"
         self._parseDeviceDescription(deviceDescriptionURL)
 
+        # UNR / CERS
+        if self.deviceInfo.unrVersion in unr.SUPPORTED_VERSIONS:
+            self.unr = unr.DeviceControl_UNR(self)
+
+        # IRCC
         if self.deviceInfo.irccVersion in ircc.SUPPORTED_VERSIONS and\
                 irccServiceDescURL is not None and\
                 irccServiceControlURL is not None:
-            self.ircc = ircc.DeviceControl_IRCC(self.deviceInfo, irccServiceDescURL, irccServiceControlURL)
-
-        if self.deviceInfo.unrVersion in unr.SUPPORTED_VERSIONS:
-            self.unr = unr.DeviceControl_UNR(self.deviceInfo)
+            self.ircc = ircc.DeviceControl_IRCC(self, irccServiceDescURL, irccServiceControlURL)
 
     def _parseDeviceDescription(self, deviceDescriptionURL):
         xml = get_xml(deviceDescriptionURL)
