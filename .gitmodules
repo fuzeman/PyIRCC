@@ -1,0 +1,3 @@
+[submodule "pyircc/lib/PyUPnP"]
+	path = pyircc/lib/PyUPnP
+	url = git://github.com/fuzeman/PyUPnP.git
