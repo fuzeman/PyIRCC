@@ -1,5 +1,6 @@
 import urllib2
-from support import SupportBase, NotSupportedError, check_support
+from pyircc.spec import NotSupportedError, NotRegisteredError
+from support import SupportBase, check_support
 from util import get_xml, http_get, class_string
 import xml.etree.ElementTree as et
 
@@ -12,29 +13,24 @@ UNR_REGISTER_RESULT_OK = 0  # OK
 UNR_REGISTER_RESULT_DECLINED = -1  # Registration was declined by device.
 
 
-class NotRegisteredError(BaseException):
-    pass
-
-
 class DeviceControl_UNR(SupportBase):
     """DeviceControl UNR
 
     :ivar device.Device device: Connected Device
     :ivar boolean force: Ignore method support limitations
     """
-    def __init__(self, device, force=False):
+    def __init__(self, force=False):
         SupportBase.__init__(self, force=force)
-        self.device = device
-        self.deviceInfo = device.deviceInfo
+        self._device = None
+        self._deviceInfo = None
 
         #: ( string ) - UNR Version
-        self.version = self.deviceInfo.unrVersion
+        self.version = None
 
         #: ( `{ actionName: actionURL }` ) - Available action URLs
         self.actionUrls = {}
-        self._parseActionList()
 
-        self.headers = None
+        self._headers = None
 
         #: ( string ) - Registered Device ID
         self.deviceId = None  # from register()
@@ -50,7 +46,19 @@ class DeviceControl_UNR(SupportBase):
         #: Available remote commands from :func:`DeviceControl_UNR.getRemoteCommandList`
         self.remoteCommands = None  # from [getRemoteCommandList]
 
-        print "construct unr"
+        #: (boolean) - Has this control service been setup?
+        self.available = False
+
+    def _setup(self, device):
+        self._device = device
+        self._deviceInfo = device.deviceInfo
+
+        self.version = self._deviceInfo.unrVersion
+
+        self.actionUrls = {}
+        self._parseActionList()
+
+        self.available = True
 
     @check_support
     def getSystemInformation(self):
@@ -100,7 +108,7 @@ class DeviceControl_UNR(SupportBase):
             try:
                 http_get(
                     self.actionUrls['register'],
-                    self.getActionHeaders(),
+                    self._getActionHeaders(),
                     name=name,
                     registrationType=registrationType,
                     deviceId=deviceId
@@ -109,8 +117,7 @@ class DeviceControl_UNR(SupportBase):
                 print e
                 if e.code == 403:
                     return UNR_REGISTER_RESULT_DECLINED
-                else:
-                    raise NotImplementedError()
+                raise NotImplementedError()
 
             self.registered = True
             return UNR_REGISTER_RESULT_OK
@@ -127,7 +134,7 @@ class DeviceControl_UNR(SupportBase):
             result = None
             try:
                 result = http_get(self.actionUrls['getRemoteCommandList'],
-                                  self.getActionHeaders())
+                                  self._getActionHeaders())
             except urllib2.HTTPError, e:
                 print e
                 raise NotImplementedError()
@@ -143,25 +150,24 @@ class DeviceControl_UNR(SupportBase):
                 self.remoteCommands[command.name] = command
 
             return self.remoteCommands
+        raise NotSupportedError()
 
-    def getActionHeaders(self):
+    def _getActionHeaders(self):
         """Get HTTP Action Headers"""
-        if self.headers is None:
+        if self._headers is None:
             if self.systemInformation is None:
                 self.getSystemInformation()  # We need system information to build headers
 
             if self.deviceId is None:
                 raise NotRegisteredError()
 
-            self.headers = {
+            self._headers = {
                 'X-' + self.systemInformation.actionHeader: self.deviceId
             }
-
-            print "headers built"
-        return self.headers
+        return self._headers
 
     def _parseActionList(self):
-        xml = get_xml(self.deviceInfo.unrCersActionUrl)
+        xml = get_xml(self._deviceInfo.unrCersActionUrl)
 
         for action in xml.iterfind("action"):
             name = action.get('name').replace('::', '_')
@@ -170,8 +176,6 @@ class DeviceControl_UNR(SupportBase):
             if self.actionUrls.has_key(name):
                 raise Exception()
             self.actionUrls[name] = action.get('url').replace(':80:80', ':80')  # TODO: what is happening here?
-
-            print "unr supported:", name
 
 
 class UNR_SystemInformationResult():

@@ -10,21 +10,21 @@ __author__ = 'Dean Gardiner'
 class Device():
     """Control Device"""
 
-    def __init__(self):
+    def __init__(self, force=False):
         #: (:class:`device.DeviceInfo`) Device Information
         self.deviceInfo = DeviceInfo()
 
         #: (:class:`ircc.DeviceControl_IRCC`) IRCC Service
-        self.ircc = None
+        self.ircc = ircc.DeviceControl_IRCC(force=force)
 
         #: (:class:`unr.DeviceControl_UNR`) UNR Service
-        self.unr = None
+        self.unr = unr.DeviceControl_UNR(force=force)
 
         #: (:class:`s2mtv.DeviceControl_S2MTV`) S2MTV Service
-        self.s2mtv = None
+        self.s2mtv = s2mtv.DeviceControl_S2MTV(force=force)
 
     @staticmethod
-    def connect(deviceDescriptionURL, irccServiceDescURL=None, irccServiceControlURL=None, force=False):
+    def connect(deviceDescriptionURL, irccServiceDescURL=None, irccServiceControlURL=None):
         """Connect to device.
 
         :param deviceDescriptionURL: UPnP Device Description URL (device location)
@@ -45,17 +45,17 @@ class Device():
 
         # UNR / CERS
         if device.deviceInfo.unrVersion in unr.SUPPORTED_VERSIONS:
-            device.unr = unr.DeviceControl_UNR(device, force=force)
+            device.unr._setup(device)
 
         # IRCC
         if device.deviceInfo.irccVersion in ircc.SUPPORTED_VERSIONS and\
            irccServiceDescURL is not None and\
            irccServiceControlURL is not None:
-            device.ircc = ircc.DeviceControl_IRCC(device, irccServiceDescURL, irccServiceControlURL, force=force)
+            device.ircc._setup(device, irccServiceDescURL, irccServiceControlURL)
 
         # S2MTV
         if device.deviceInfo.s2mtvVersion in s2mtv.SUPPORTED_VERSIONS:
-            device.s2mtv = s2mtv.DeviceControl_S2MTV(device, force=force)
+            device.s2mtv._setup(device)
 
         return device
 
@@ -86,6 +86,8 @@ class Device():
         xS2mtvDevice = xDevice.find(S_AV + 'X_S2MTV_DeviceInfo')
         self.deviceInfo.s2mtvVersion = xS2mtvDevice.findtext(S_AV + 'X_S2MTV_Version')
         self.deviceInfo.s2mtvBaseUrl = xS2mtvDevice.findtext(S_AV + 'X_S2MTV_BaseURL')
+        if self.deviceInfo.s2mtvBaseUrl[-1] != '/':
+            self.deviceInfo.s2mtvBaseUrl += '/'
 
         self.deviceInfo.maxBgmCount = int(xDevice.findtext(S_AV + 'X_MaxBGMCount'))
         self.deviceInfo.standardDmr = xDevice.findtext(S_AV + 'X_StandardDMR')

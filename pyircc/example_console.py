@@ -1,3 +1,4 @@
+#noinspection PyPackageRequirements
 from twisted.internet import reactor
 from device import Device
 from lib.PyUPnP import SSDP_MSearch, UPnP
@@ -34,7 +35,12 @@ def main():
 
         tr = None  # Temporary variable for results
 
+        print
+
         c = Device.connect(device.location, service.SCPDURL, service.controlURL)
+        print "ircc available:", c.ircc.available
+        print "unr available:", c.unr.available
+        print "s2mtv available", c.s2mtv.available
 
         # register
         if not c.unr.isFunctionSupported(c.unr.register):
@@ -46,12 +52,13 @@ def main():
             return
 
         # Send IRCC Command (X_SendIRCC)
-        #if not c.ircc.isFunctionSupported(c.ircc.sendIRCC):
-        #    print "'sendIRCC' not supported"
-        #    return
-        #tr = c.ircc.sendIRCC('Tv_Radio')
+        if not c.ircc.isFunctionSupported(c.ircc.sendIRCC):
+            print "'sendIRCC' not supported"
+            return
+        tr = c.ircc.sendIRCC('Tv_Radio')
 
-        c.s2mtv.getDeviceInfo()
+        tr = c.s2mtv.getDeviceInfo()
+        print str(tr)
 
     def selectService(numServices):
         deviceNum = None

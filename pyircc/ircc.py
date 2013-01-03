@@ -1,16 +1,12 @@
 from pysimplesoap.client import SoapClient, SoapFault
-from support import SupportBase, NotSupportedError, check_support
+from support import SupportBase, check_support
 from unr import UNR_RemoteCommand
 from util import get_xml, http_get
-from spec import UPNP_XML_SCHEMA_SERVICE as S_SER, SONY_UPNP_URN_IRCC
+from spec import UPNP_XML_SCHEMA_SERVICE as S_SER, SONY_UPNP_URN_IRCC, NotSupportedError, InvalidArgumentError
 
 __author__ = 'Dean Gardiner'
 
 SUPPORTED_VERSIONS = ('1.0',)
-
-
-class InvalidArgumentError(BaseException):
-    pass
 
 
 class DeviceControl_IRCC(SupportBase):
@@ -23,39 +19,49 @@ class DeviceControl_IRCC(SupportBase):
     :ivar boolean force: Ignore method support limitations
     """
 
-    def __init__(self, device, descriptionUrl, controlUrl, force=False):
+    def __init__(self, force=False):
         SupportBase.__init__(self, force=force)
-        self.device = device
-        self.deviceInfo = device.deviceInfo
-        #: (`string`) - IRCC Version
-        self.version = self.deviceInfo.irccVersion
 
-        self.controlUrl = controlUrl
+        self._device = None
+        self._deviceInfo = None
 
-        self.client = None
+        #: ( string ) - IRCC Version
+        self.version = None
+
+        self._controlUrl = None
+        self._client = None
 
         #: (`{actionName: {argumentName: argumentDirection}}`) - Available Actions
         self.actionInfo = {}
+
+        #: (boolean) - Has this control service been setup?
+        self.available = False
+
+    def _setup(self, device, descriptionUrl, controlUrl):
+        self._device = device
+        self._deviceInfo = device.deviceInfo
+        self.version = self._deviceInfo.irccVersion
+
+        self._controlUrl = controlUrl
+
         self._parseDescription(descriptionUrl)
 
-        print "construct ircc", descriptionUrl, controlUrl
+        self.available = True
 
     def _load(self):
-        if self.device.unr.remoteCommands is None:
-            if not self.device.unr.isFunctionSupported(self.device.unr.getRemoteCommandList):
+        if self._device.unr.remoteCommands is None:
+            if not self._device.unr.isFunctionSupported(self._device.unr.getRemoteCommandList):
                 print "'getRemoteCommandList' not supported"
                 raise NotSupportedError()
-            self.device.unr.getRemoteCommandList()
-            print "remoteCommands loaded"
+            self._device.unr.getRemoteCommandList()
 
-        if self.client is None and self.device.unr.remoteCommands:
-            self.client = SoapClient(
-                location=self.controlUrl,
+        if self._client is None and self._device.unr.remoteCommands:
+            self._client = SoapClient(
+                location=self._controlUrl,
                 action=SONY_UPNP_URN_IRCC,
                 namespace=SONY_UPNP_URN_IRCC,
                 soap_ns='soap', ns=False
             )
-            print "client loaded"
 
     @check_support
     def sendIRCC(self, codeName):
@@ -69,19 +75,20 @@ class DeviceControl_IRCC(SupportBase):
         print ">>> sendIRCC", codeName
 
         if codeName is None:
-            return
+            raise InvalidArgumentError()
 
         if self.version == '1.0' or self.force:
             self._load()
 
-            if not self.device.unr.remoteCommands.has_key(codeName):
+            if not self._device.unr.remoteCommands.has_key(codeName):
                 raise InvalidArgumentError()
 
-            command = self.device.unr.remoteCommands[codeName]
+            command = self._device.unr.remoteCommands[codeName]
 
             if command.type == UNR_RemoteCommand.TYPE_IRCC:
                 try:
-                    self.client.call('X_SendIRCC', IRCCCode=command.value)
+                    self._client.call('X_SendIRCC', IRCCCode=command.value)
+                    return
                 except SoapFault, e:
                     if e.faultcode == 's:Client' and e.faultstring == 'UPnPError':
                         raise InvalidArgumentError()
@@ -89,13 +96,11 @@ class DeviceControl_IRCC(SupportBase):
                     print e.faultcode, e.faultstring
                     raise NotImplementedError()
             else:
-                result = http_get(command.value,
-                                  self.device.unr.getActionHeaders())
-                print result
+                http_get(command.value, self._device.unr._getActionHeaders())
+                return
+        raise NotSupportedError()
 
     def _parseDescription(self, descriptionUrl):
-        print "_parseDescription", descriptionUrl
-
         xml = get_xml(descriptionUrl)
         if xml is None:
             raise Exception()
@@ -117,8 +122,6 @@ class DeviceControl_IRCC(SupportBase):
                 if self.actionInfo[actionName].has_key(argumentName):
                     raise Exception()
                 self.actionInfo[actionName][argumentName] = argumentDirection
-
-        #pprint.pprint(self.actionInfo)
 
         for ak, action in self.actionInfo.items():
             funcName = ak[ak.index('X_') + 2:]

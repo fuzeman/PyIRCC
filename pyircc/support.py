@@ -1,11 +1,6 @@
+from pyircc.spec import InvalidFunctionError, NotSupportedError
+
 __author__ = 'Dean Gardiner'
-
-
-class NotSupportedError(BaseException):
-    pass
-
-class InvalidFunctionError(BaseException):
-    pass
 
 
 class SupportBase():
