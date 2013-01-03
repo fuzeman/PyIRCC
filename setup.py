@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
+import setuptools
 from distutils.core import setup
+
+__author__ = 'Dean Gardiner'
 
 setup(name='PyIRCC',
       version='0.1',

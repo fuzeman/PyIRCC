@@ -2,4 +2,6 @@
 # Current PyPi-released version 1.05a has urllib2 bugs.
 https://github.com/fuzeman/pysimplesoap/archive/1.07a.zip
 
+https://github.com/fuzeman/PyUPnP/archive/0.8a.zip
+
 decorator>=3.4.0

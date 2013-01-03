@@ -1,7 +1,7 @@
 #noinspection PyPackageRequirements
 from twisted.internet import reactor
 from pyircc.device import Device
-from pyircc.lib.PyUPnP import SSDP_MSearch, UPnP
+from pyupnp import SSDP_MSearch, UPnP
 from pyircc.spec import SONY_UPNP_URN_IRCC
 from pyircc import unr
 
