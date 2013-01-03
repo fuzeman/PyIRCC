@@ -16,7 +16,7 @@ UNR_REGISTER_RESULT_DECLINED = -1  # Registration was declined by device.
 class DeviceControl_UNR(SupportBase):
     """DeviceControl UNR
 
-    :ivar boolean force: Ignore method support limitations
+    :ivar boolean force: Force functions to be supported
     """
     def __init__(self, force=False, trace=False):
         SupportBase.__init__(self, force=force)

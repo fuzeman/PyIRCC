@@ -9,6 +9,8 @@ class Device():
     """Control Device"""
 
     def __init__(self, force=False, trace=False):
+        self.trace = trace
+
         #: (:class:`pyircc.device.DeviceInfo`) Device Information
         self.deviceInfo = DeviceInfo()
 
@@ -25,7 +27,7 @@ class Device():
         self.rdis = rdis.DeviceControl_RDIS(force=force, trace=trace)
 
     @staticmethod
-    def connect(deviceDescriptionURL, irccServiceDescURL=None, irccServiceControlURL=None):
+    def connect(deviceDescriptionURL, irccServiceDescURL=None, irccServiceControlURL=None, force=False, trace=False):
         """Connect to device.
 
         :param deviceDescriptionURL: UPnP Device Description URL (device location)
@@ -37,11 +39,18 @@ class Device():
         :param irccServiceControlURL: IRCC Service Control URL (service controlURL)
         :type irccServiceControlURL: string or None
 
+        :param force: Force functions to be supported
+        :type force: boolean
+
+        :param trace: Trace requests to stdout
+        :type trace: boolean
+
         :rtype: Device
         """
-        print "Device.connect(", deviceDescriptionURL, ",", irccServiceDescURL, ",", irccServiceControlURL, ")"
+        if trace:
+            print "Device.connect(", deviceDescriptionURL, ",", irccServiceDescURL, ",", irccServiceControlURL, ")"
 
-        device = Device()
+        device = Device(force=force, trace=trace)
         device._parseDeviceDescription(deviceDescriptionURL)
 
         # UNR / CERS

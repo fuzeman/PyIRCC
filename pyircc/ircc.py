@@ -12,7 +12,7 @@ SUPPORTED_VERSIONS = ('1.0',)
 class DeviceControl_IRCC(SupportBase):
     """DeviceControl IRCC
 
-    :ivar boolean force: Ignore method support limitations
+    :ivar boolean force: Force functions to be supported
     """
 
     def __init__(self, force=False, trace=False):
