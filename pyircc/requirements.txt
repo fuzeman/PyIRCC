@@ -1,2 +1,5 @@
-pysimplesoap==1.05a
-decorator==3.4.0
+# We need pysimplesoap 1.07a, so need to get this version from a mirror.
+# Current PyPi-released version 1.05a has urllib2 bugs.
+https://github.com/fuzeman/pysimplesoap/archive/1.07a.zip
+
+decorator>=3.4.0
