@@ -15,8 +15,9 @@ class DeviceControl_IRCC(SupportBase):
     :ivar boolean force: Ignore method support limitations
     """
 
-    def __init__(self, force=False):
+    def __init__(self, force=False, trace=False):
         SupportBase.__init__(self, force=force)
+        self.trace = trace
 
         self._device = None
         self._deviceInfo = None
@@ -74,7 +75,8 @@ class DeviceControl_IRCC(SupportBase):
 
         :raises: :class:`pyircc.spec.InvalidArgumentError`, NotImplementedError
         """
-        print ">>> sendIRCC", codeName
+        if self.trace:
+            print ">>> sendIRCC", codeName
 
         if codeName is None:
             raise InvalidArgumentError()
@@ -95,7 +97,8 @@ class DeviceControl_IRCC(SupportBase):
                     if e.faultcode == 's:Client' and e.faultstring == 'UPnPError':
                         raise InvalidArgumentError()
 
-                    print e.faultcode, e.faultstring
+                    if self.trace:
+                        print e.faultcode, e.faultstring
                     raise NotImplementedError()
             else:
                 http_get(command.value, self._device.unr._getActionHeaders())

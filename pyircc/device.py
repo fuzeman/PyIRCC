@@ -8,21 +8,21 @@ __author__ = 'Dean Gardiner'
 class Device():
     """Control Device"""
 
-    def __init__(self, force=False):
+    def __init__(self, force=False, trace=False):
         #: (:class:`pyircc.device.DeviceInfo`) Device Information
         self.deviceInfo = DeviceInfo()
 
         #: (:class:`pyircc.ircc.DeviceControl_IRCC`) IRCC Service
-        self.ircc = ircc.DeviceControl_IRCC(force=force)
+        self.ircc = ircc.DeviceControl_IRCC(force=force, trace=trace)
 
         #: (:class:`pyircc.unr.DeviceControl_UNR`) UNR Service
-        self.unr = unr.DeviceControl_UNR(force=force)
+        self.unr = unr.DeviceControl_UNR(force=force, trace=trace)
 
         #: (:class:`pyircc.s2mtv.DeviceControl_S2MTV`) S2MTV Service
-        self.s2mtv = s2mtv.DeviceControl_S2MTV(force=force)
+        self.s2mtv = s2mtv.DeviceControl_S2MTV(force=force, trace=trace)
 
         #: (:class:`pyircc.s2mtv.DeviceControl_RDIS`) RDIS Service
-        self.rdis = rdis.DeviceControl_RDIS(force=force)
+        self.rdis = rdis.DeviceControl_RDIS(force=force, trace=trace)
 
     @staticmethod
     def connect(deviceDescriptionURL, irccServiceDescURL=None, irccServiceControlURL=None):

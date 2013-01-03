@@ -15,8 +15,10 @@ class DeviceControl_S2MTV(SupportBase):
 
     :ivar boolean force: Ignore method support limitations
     """
-    def __init__(self, force=False):
+    def __init__(self, force=False, trace=False):
         SupportBase.__init__(self, force=force)
+        self.trace = trace
+
         self._device = None
         self._deviceInfo = None
 
@@ -45,14 +47,16 @@ class DeviceControl_S2MTV(SupportBase):
 
         :raises: :class:`pyircc.spec.NotSupportedError`, :class:`NotImplementedError`
         """
-        print ">>> getDeviceInfo"
+        if self.trace:
+            print ">>> getDeviceInfo"
 
         if self.version == '1.0' or self.force:
             url = urlparse.urljoin(self._deviceInfo.s2mtvBaseUrl, 'SSDgetDeviceInfo/')
             try:
                 xml = get_xml(url)
             except urllib2.HTTPError, e:
-                print e
+                if self.trace:
+                    print e
                 if e.code == 501:
                     raise NotSupportedError()
                 raise NotImplementedError()

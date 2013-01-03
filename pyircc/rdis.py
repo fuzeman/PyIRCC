@@ -7,8 +7,10 @@ SUPPORTED_VERSIONS = ('1.0',)
 
 
 class DeviceControl_RDIS(SupportBase):
-    def __init__(self, force=False):
+    def __init__(self, force=False, trace=False):
         SupportBase.__init__(self, force=force)
+        self.trace = trace
+
         self._device = None
         self._deviceInfo = None
 

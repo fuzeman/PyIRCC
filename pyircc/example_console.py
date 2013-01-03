@@ -68,7 +68,7 @@ def main():
 
         print c.unr.getStatus()
 
-        print c.unr.getContentUrl()
+        print 'getContentUrl:', c.unr.getContentUrl()
 
 #        print c.unr.sendContentUrl('http://www.trademe.co.nz')
 

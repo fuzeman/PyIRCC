@@ -18,8 +18,10 @@ class DeviceControl_UNR(SupportBase):
 
     :ivar boolean force: Ignore method support limitations
     """
-    def __init__(self, force=False):
+    def __init__(self, force=False, trace=False):
         SupportBase.__init__(self, force=force)
+        self.trace = trace
+
         self._device = None
         self._deviceInfo = None
 
@@ -69,14 +71,16 @@ class DeviceControl_UNR(SupportBase):
 
         :raises: :class:`pyircc.spec.NotSupportedError`, :class:`NotImplementedError`
         """
-        print ">>> getSystemInformation"
+        if self.trace:
+            print ">>> getSystemInformation"
 
         if self.version == '1.2' or self.force:
             result = None
             try:
                 result = http_get(self.actionUrls['getSystemInformation'], {})  # No headers to send yet.
             except urllib2.HTTPError, e:
-                print e
+                if self.trace:
+                    print e
                 raise NotImplementedError()
 
             xml = et.fromstring(result)
@@ -102,7 +106,8 @@ class DeviceControl_UNR(SupportBase):
 
         :raises: :class:`pyircc.spec.NotSupportedError`, :class:`NotImplementedError`
         """
-        print ">>> register", name, registrationType, deviceId
+        if self.trace:
+            print ">>> register", name, registrationType, deviceId
 
         self.deviceName = name
         self.deviceId = deviceId
@@ -117,7 +122,8 @@ class DeviceControl_UNR(SupportBase):
                     deviceId=deviceId
                 )
             except urllib2.HTTPError, e:
-                print e
+                if self.trace:
+                    print e
                 if e.code == 403:
                     return UNR_REGISTER_RESULT_DECLINED
                 raise NotImplementedError()
@@ -132,14 +138,16 @@ class DeviceControl_UNR(SupportBase):
 
         :raises: :class:`pyircc.spec.NotSupportedError`, :class:`NotImplementedError`
         """
-        print ">>> getRemoteCommandList"
+        if self.trace:
+            print ">>> getRemoteCommandList"
         if self.version == '1.2' or self.force:
             result = None
             try:
                 result = http_get(self.actionUrls['getRemoteCommandList'],
                                   self._getActionHeaders())
             except urllib2.HTTPError, e:
-                print e
+                if self.trace:
+                    print e
                 raise NotImplementedError()
 
             if not result:
@@ -163,13 +171,15 @@ class DeviceControl_UNR(SupportBase):
 
         :returns: string or Null
         """
-        print ">>> getText"
+        if self.trace:
+            print ">>> getText"
         if self.version == '1.2' or self.force:
             result = None
             try:
                 result = http_get(self.actionUrls['getText'], self._getActionHeaders())
             except urllib2.HTTPError, e:
-                print e
+                if self.trace:
+                    print e
                 if e.code == 406:
                     return None
                 raise NotImplementedError()
@@ -190,13 +200,15 @@ class DeviceControl_UNR(SupportBase):
 
        :returns: boolean
        """
-        print ">>> sendText"
+        if self.trace:
+            print ">>> sendText"
         if self.version == '1.2' or self.force:
             try:
                 http_get(self.actionUrls['sendText'], self._getActionHeaders(),
                                   text=text)
             except urllib2.HTTPError, e:
-                print e
+                if self.trace:
+                    print e
                 if e.code == 406:
                     return False
                 raise NotImplementedError()
@@ -212,13 +224,15 @@ class DeviceControl_UNR(SupportBase):
 
        :returns: :class:`pyircc.unr.UNR_Status`
        """
-        print ">>> getStatus"
+        if self.trace:
+            print ">>> getStatus"
         if self.version == '1.2' or self.force:
             result = None
             try:
                 result = http_get(self.actionUrls['getStatus'], self._getActionHeaders())
             except urllib2.HTTPError, e:
-                print e
+                if self.trace:
+                    print e
                 raise NotImplementedError()
 
             if not result:
@@ -241,13 +255,15 @@ class DeviceControl_UNR(SupportBase):
 
        :returns: :class:`pyircc.unr.UNR_ContentInformation` or None
        """
-        print ">>> getContentUrl"
+        if self.trace:
+            print ">>> getContentUrl"
         if self.version == '1.2' or self.force:
             result = None
             try:
                 result = http_get(self.actionUrls['getContentUrl'], self._getActionHeaders())
             except urllib2.HTTPError, e:
-                print e
+                if self.trace:
+                    print e
                 if e.code == 503:
                     return None
                 raise NotImplementedError()
@@ -268,7 +284,8 @@ class DeviceControl_UNR(SupportBase):
 
        :returns: boolean
        """
-        print ">>> sendContentUrl"
+        if self.trace:
+            print ">>> sendContentUrl"
         if self.version == '1.2' or self.force:
             try:
                 xRoot = et.Element('contentUrl')
@@ -280,7 +297,8 @@ class DeviceControl_UNR(SupportBase):
 
                 http_post(self.actionUrls['sendContentUrl'], self._getActionHeaders(), post_data)
             except urllib2.HTTPError, e:
-                print e
+                if self.trace:
+                    print e
                 raise NotImplementedError()
 
             return True
@@ -294,13 +312,15 @@ class DeviceControl_UNR(SupportBase):
 
        :returns: :class:`pyircc.unr.UNR_ContentInformation`
        """
-        print ">>> getContentInformation"
+        if self.trace:
+            print ">>> getContentInformation"
         if self.version == '1.2' or self.force:
             result = None
             try:
                 result = http_get(self.actionUrls['getContentInformation'], self._getActionHeaders())
             except urllib2.HTTPError, e:
-                print e
+                if self.trace:
+                    print e
                 if e.code == 503:
                     return None
                 raise NotImplementedError()
