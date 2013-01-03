@@ -60,6 +60,20 @@ def main():
         tr = c.s2mtv.getDeviceInfo()
         print str(tr)
 
+        print 'rdis', c.rdis.sessionControlEnabled, c.rdis.entryPort
+
+        print 'getText:', c.unr.getText()
+
+#        print 'sendText result:', c.unr.sendText('hello world')
+
+        print c.unr.getStatus()
+
+        print c.unr.getContentUrl()
+
+#        print c.unr.sendContentUrl('http://www.trademe.co.nz')
+
+        print c.unr.getContentInformation()
+
     def selectService(numServices):
         deviceNum = None
         while deviceNum is None:

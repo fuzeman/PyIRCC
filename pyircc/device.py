@@ -1,4 +1,4 @@
-from pyircc import s2mtv, unr, ircc
+from pyircc import s2mtv, unr, ircc, rdis
 from pyircc.spec import SONY_XML_SCHEMA_AV as S_AV
 from pyircc.util import get_xml
 
@@ -20,6 +20,9 @@ class Device():
 
         #: (:class:`pyircc.s2mtv.DeviceControl_S2MTV`) S2MTV Service
         self.s2mtv = s2mtv.DeviceControl_S2MTV(force=force)
+
+        #: (:class:`pyircc.s2mtv.DeviceControl_RDIS`) RDIS Service
+        self.rdis = rdis.DeviceControl_RDIS(force=force)
 
     @staticmethod
     def connect(deviceDescriptionURL, irccServiceDescURL=None, irccServiceControlURL=None):
@@ -55,6 +58,10 @@ class Device():
         if device.deviceInfo.s2mtvVersion in s2mtv.SUPPORTED_VERSIONS:
             device.s2mtv._setup(device)
 
+        # RDIS
+        if device.deviceInfo.rdisVersion in rdis.SUPPORTED_VERSIONS:
+            device.rdis._setup(device)
+
         return device
 
     def _parseDeviceDescription(self, deviceDescriptionURL):
@@ -79,7 +86,7 @@ class Device():
         xRdisDevice = xDevice.find(S_AV + 'X_RDIS_DeviceInfo')
         self.deviceInfo.rdisVersion = xRdisDevice.findtext(S_AV + 'X_RDIS_Version')
         self.deviceInfo.rdisSessionControl = bool(xRdisDevice.findtext(S_AV + 'X_RDIS_SESSION_CONTROL'))
-        self.deviceInfo.rdisEntryPort = xRdisDevice.findtext(S_AV + 'X_RDIS_ENTRY_PORT')
+        self.deviceInfo.rdisEntryPort = int(xRdisDevice.findtext(S_AV + 'X_RDIS_ENTRY_PORT'))
 
         xS2mtvDevice = xDevice.find(S_AV + 'X_S2MTV_DeviceInfo')
         self.deviceInfo.s2mtvVersion = xS2mtvDevice.findtext(S_AV + 'X_S2MTV_Version')

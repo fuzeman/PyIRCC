@@ -1,7 +1,7 @@
 import urllib2
 from pyircc.spec import NotSupportedError, NotRegisteredError
 from pyircc.support import SupportBase, check_support
-from pyircc.util import get_xml, http_get, class_string_instance
+from pyircc.util import get_xml, http_get, class_string_instance, http_post
 import xml.etree.ElementTree as et
 
 __author__ = 'Dean Gardiner'
@@ -65,7 +65,7 @@ class DeviceControl_UNR(SupportBase):
 
     @check_support
     def getSystemInformation(self):
-        """Get Device System Information
+        """Get device system information
 
         :raises: :class:`pyircc.spec.NotSupportedError`, :class:`NotImplementedError`
         """
@@ -128,7 +128,7 @@ class DeviceControl_UNR(SupportBase):
 
     @check_support
     def getRemoteCommandList(self):
-        """Get Device Remote Commands
+        """Get device remote commands
 
         :raises: :class:`pyircc.spec.NotSupportedError`, :class:`NotImplementedError`
         """
@@ -153,6 +153,164 @@ class DeviceControl_UNR(SupportBase):
                 self.remoteCommands[command.name] = command
 
             return self.remoteCommands
+        raise NotSupportedError()
+
+    @check_support
+    def getText(self):
+        """Get text from displayed text input screen, Returns None if there is no text input screen displayed
+
+        :raises: :class:`pyircc.spec.NotSupportedError`, :class:`NotImplementedError`
+
+        :returns: string or Null
+        """
+        print ">>> getText"
+        if self.version == '1.2' or self.force:
+            result = None
+            try:
+                result = http_get(self.actionUrls['getText'], self._getActionHeaders())
+            except urllib2.HTTPError, e:
+                print e
+                if e.code == 406:
+                    return None
+                raise NotImplementedError()
+
+            if not result:
+                raise NotImplementedError()
+
+            xml = et.fromstring(result)
+
+            return xml.text
+        raise NotSupportedError()
+
+    @check_support
+    def sendText(self, text):
+        """Send text to replace current text in displayed text input screen
+
+       :raises: :class:`pyircc.spec.NotSupportedError`, :class:`NotImplementedError`
+
+       :returns: boolean
+       """
+        print ">>> sendText"
+        if self.version == '1.2' or self.force:
+            try:
+                http_get(self.actionUrls['sendText'], self._getActionHeaders(),
+                                  text=text)
+            except urllib2.HTTPError, e:
+                print e
+                if e.code == 406:
+                    return False
+                raise NotImplementedError()
+
+            return True
+        raise NotSupportedError()
+
+    @check_support
+    def getStatus(self):
+        """Get current view status
+
+       :raises: :class:`pyircc.spec.NotSupportedError`, :class:`NotImplementedError`
+
+       :returns: :class:`pyircc.unr.UNR_Status`
+       """
+        print ">>> getStatus"
+        if self.version == '1.2' or self.force:
+            result = None
+            try:
+                result = http_get(self.actionUrls['getStatus'], self._getActionHeaders())
+            except urllib2.HTTPError, e:
+                print e
+                raise NotImplementedError()
+
+            if not result:
+                raise NotImplementedError()
+
+            xml = et.fromstring(result)
+
+            statusList = {}
+            for s in xml.iterfind('status'):
+                status = UNR_Status(s)
+                statusList[status.name] = status
+            return statusList
+        raise NotSupportedError()
+
+    @check_support
+    def getContentUrl(self):
+        """Get web browser content url, Returns None if web browser isn't active.
+
+       :raises: :class:`pyircc.spec.NotSupportedError`, :class:`NotImplementedError`
+
+       :returns: :class:`pyircc.unr.UNR_ContentInformation` or None
+       """
+        print ">>> getContentUrl"
+        if self.version == '1.2' or self.force:
+            result = None
+            try:
+                result = http_get(self.actionUrls['getContentUrl'], self._getActionHeaders())
+            except urllib2.HTTPError, e:
+                print e
+                if e.code == 503:
+                    return None
+                raise NotImplementedError()
+
+            if not result:
+                raise NotImplementedError()
+
+            xml = et.fromstring(result)
+
+            return UNR_ContentInformation(xml)
+        raise NotSupportedError()
+
+    @check_support
+    def sendContentUrl(self, url):
+        """Set Web Browser content url
+
+       :raises: :class:`pyircc.spec.NotSupportedError`, :class:`NotImplementedError`
+
+       :returns: boolean
+       """
+        print ">>> sendContentUrl"
+        if self.version == '1.2' or self.force:
+            try:
+                xRoot = et.Element('contentUrl')
+
+                xUrl = et.SubElement(xRoot, 'url')
+                xUrl.text = url
+
+                post_data = et.tostring(xRoot)
+
+                http_post(self.actionUrls['sendContentUrl'], self._getActionHeaders(), post_data)
+            except urllib2.HTTPError, e:
+                print e
+                raise NotImplementedError()
+
+            return True
+        raise NotSupportedError()
+
+    @check_support
+    def getContentInformation(self):
+        """Get view content information
+
+       :raises: :class:`pyircc.spec.NotSupportedError`, :class:`NotImplementedError`
+
+       :returns: :class:`pyircc.unr.UNR_ContentInformation`
+       """
+        print ">>> getContentInformation"
+        if self.version == '1.2' or self.force:
+            result = None
+            try:
+                result = http_get(self.actionUrls['getContentInformation'], self._getActionHeaders())
+            except urllib2.HTTPError, e:
+                print e
+                if e.code == 503:
+                    return None
+                raise NotImplementedError()
+
+            if not result:
+                raise NotImplementedError()
+
+            xml = et.fromstring(result)
+
+            return UNR_ContentInformation(xml)
         raise NotSupportedError()
 
     def _getActionHeaders(self):
@@ -248,6 +406,56 @@ class UNR_RemoteCommand():
 
     def __str__(self):
         return class_string_instance(self, ['newLines', 'name', 'type', 'value'])
+
+    def __repr__(self):
+        return self.__str__()
+
+class UNR_Status():
+    """:func:`DeviceControl_UNR.getStatus` Result Item
+
+    :param xml_element: Result Element Tree
+    """
+    def __init__(self, xml_element):
+        self.name = xml_element.get('name')
+
+        _statusItem = xml_element.find('statusItem')
+        if _statusItem is not None:
+            if _statusItem.get('field') == 'source':
+                self.source = _statusItem.get('value')
+
+    def __str__(self):
+        return class_string_instance(self, ['name', 'source'])
+
+    def __repr__(self):
+        return self.__str__()
+
+class UNR_ContentInformation():
+    """Content Information Result Item
+
+    :param xml_element: Result Element Tree
+    """
+    def __init__(self, xml_element):
+
+        _url = xml_element.find('url')
+        if _url is not None:
+            self.url = _url.text
+
+        self.info = {}
+
+        if xml_element.tag == 'contentInformation':
+            _contentInformation = xml_element
+        else:
+            _contentInformation = xml_element.find('contentInformation')
+
+        if _contentInformation is not None:
+            for i in _contentInformation.iterfind('infoItem'):
+                field = i.get('field')
+                value = i.get('value')
+                if field is not None and value is not None:
+                    self.info[field] = value
+
+    def __str__(self):
+        return class_string_instance(self, ['url', 'info'])
 
     def __repr__(self):
         return self.__str__()

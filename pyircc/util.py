@@ -28,6 +28,13 @@ def http_get(baseUrl, headers, **kwargs):
 
     return data
 
+def http_post(url, headers, post_data):
+    request = urllib2.Request(url=url, data=post_data, headers=headers)
+    conn = urllib2.urlopen(request)
+    data = conn.read()
+    conn.close()
+
+    return data
 
 def url_query_join(**kwargs):
     args = []
