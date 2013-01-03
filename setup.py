@@ -7,7 +7,7 @@ __author__ = 'Dean Gardiner'
 
 setup(
     name='PyIRCC',
-    version='0.8a',
+    version='0.8b',
     description='IRCC (Sony) network remote control library',
     author='Dean Gardiner',
     author_email='gardiner91@gmail.com',
