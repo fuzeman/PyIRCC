@@ -18,6 +18,8 @@ Modules:
    device
    ircc
    unr
+   s2mtv
+   spec
    support
 
 Compatible Products

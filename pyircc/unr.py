@@ -1,7 +1,7 @@
 import urllib2
 from pyircc.spec import NotSupportedError, NotRegisteredError
-from support import SupportBase, check_support
-from util import get_xml, http_get, class_string
+from pyircc.support import SupportBase, check_support
+from pyircc.util import get_xml, http_get, class_string_instance
 import xml.etree.ElementTree as et
 
 __author__ = 'Dean Gardiner'
@@ -16,7 +16,6 @@ UNR_REGISTER_RESULT_DECLINED = -1  # Registration was declined by device.
 class DeviceControl_UNR(SupportBase):
     """DeviceControl UNR
 
-    :ivar device.Device device: Connected Device
     :ivar boolean force: Ignore method support limitations
     """
     def __init__(self, force=False):
@@ -38,11 +37,11 @@ class DeviceControl_UNR(SupportBase):
         #: ( bool ) - Device currently registered?
         self.registered = False
 
-        #: ( :class:`unr.UNR_SystemInformationResult` ) -
+        #: ( :class:`pyircc.unr.UNR_SystemInformationResult` ) -
         #: System Information from :func:`DeviceControl_UNR.getSystemInformation`
         self.systemInformation = None  # from [getSystemInformation]
 
-        #: ( [ :class:`unr.UNR_RemoteCommand` ] ) -
+        #: ( [ :class:`pyircc.unr.UNR_RemoteCommand` ] ) -
         #: Available remote commands from :func:`DeviceControl_UNR.getRemoteCommandList`
         self.remoteCommands = None  # from [getRemoteCommandList]
 
@@ -50,6 +49,10 @@ class DeviceControl_UNR(SupportBase):
         self.available = False
 
     def _setup(self, device):
+        """Setup the UNR control service. (*PRIVATE*)
+
+        :ivar device.Device device: Connected Device
+        """
         self._device = device
         self._deviceInfo = device.deviceInfo
 
@@ -64,7 +67,7 @@ class DeviceControl_UNR(SupportBase):
     def getSystemInformation(self):
         """Get Device System Information
 
-        :raises: :class:`support.NotSupportedError`, :class:`NotImplementedError`
+        :raises: :class:`pyircc.spec.NotSupportedError`, :class:`NotImplementedError`
         """
         print ">>> getSystemInformation"
 
@@ -97,7 +100,7 @@ class DeviceControl_UNR(SupportBase):
         :param deviceId: Control Device ID
         :type deviceId: string
 
-        :raises: :class:`support.NotSupportedError`, :class:`NotImplementedError`
+        :raises: :class:`pyircc.spec.NotSupportedError`, :class:`NotImplementedError`
         """
         print ">>> register", name, registrationType, deviceId
 
@@ -127,7 +130,7 @@ class DeviceControl_UNR(SupportBase):
     def getRemoteCommandList(self):
         """Get Device Remote Commands
 
-        :raises: :class:`support.NotSupportedError`, :class:`NotImplementedError`
+        :raises: :class:`pyircc.spec.NotSupportedError`, :class:`NotImplementedError`
         """
         print ">>> getRemoteCommandList"
         if self.version == '1.2' or self.force:
@@ -207,17 +210,14 @@ class UNR_SystemInformationResult():
             self.supportedFunctions.append(e.get('name').lower())
 
     def __str__(self):
-        return class_string('UNR_SystemInformationResult',
-                            name=self.name,
-                            generation=self.generation,
-                            modelName=self.modelName,
-                            area=self.area,
-                            languge=self.language,
-                            country=self.country,
-                            actionHeader=self.actionHeader,
-                            supportedSources=self.supportedSources,
-                            supportedContents=self.supportedContents,
-                            supportedFunctions=self.supportedFunctions)
+        return class_string_instance(self, [
+            'name', 'generation', 'modelName',
+            'area', 'language', 'country',
+            'actionHeader',
+            'supportedSources',
+            'supportedContents',
+            'supportedFunctions'
+        ])
 
     def __repr__(self):
         return self.__str__()
@@ -247,11 +247,7 @@ class UNR_RemoteCommand():
             self.value = self.value.replace(':80:80', ':80')  # TODO: what is happening here?
 
     def __str__(self):
-        return class_string('UNR_RemoteCommand',
-                            newLines=False,
-                            name=self.name,
-                            type=self.type,
-                            value=self.value)
+        return class_string_instance(self, ['newLines', 'name', 'type', 'value'])
 
     def __repr__(self):
         return self.__str__()

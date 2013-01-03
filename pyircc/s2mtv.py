@@ -2,7 +2,7 @@ import urllib2
 import urlparse
 from pyircc.spec import InvalidResponseError, NotSupportedError
 from pyircc.support import SupportBase, check_support
-from pyircc.util import get_xml, class_string, class_string_instance
+from pyircc.util import get_xml, class_string_instance
 
 __author__ = 'Dean Gardiner'
 
@@ -11,7 +11,10 @@ SUPPORTED_VERSIONS = ('1.0',)
 
 
 class DeviceControl_S2MTV(SupportBase):
+    """DeviceControl S2MTV
 
+    :ivar boolean force: Ignore method support limitations
+    """
     def __init__(self, force=False):
         SupportBase.__init__(self, force=force)
         self._device = None
@@ -23,6 +26,10 @@ class DeviceControl_S2MTV(SupportBase):
         self.available = False
 
     def _setup(self, device):
+        """Setup the S2MTV control service. (*PRIVATE*)
+
+        :ivar device.Device device: Connected Device
+        """
         self._device = device
         self._deviceInfo = device.deviceInfo
 
@@ -34,21 +41,31 @@ class DeviceControl_S2MTV(SupportBase):
 
     @check_support
     def getDeviceInfo(self):
+        """Get Device Information
+
+        :raises: :class:`pyircc.spec.NotSupportedError`, :class:`NotImplementedError`
+        """
         print ">>> getDeviceInfo"
 
-        url = urlparse.urljoin(self._deviceInfo.s2mtvBaseUrl, 'SSDgetDeviceInfo/')
-        try:
-            xml = get_xml(url)
-        except urllib2.HTTPError, e:
-            print e
-            if e.code == 501:
-                raise NotSupportedError()
-            raise NotImplementedError()
+        if self.version == '1.0' or self.force:
+            url = urlparse.urljoin(self._deviceInfo.s2mtvBaseUrl, 'SSDgetDeviceInfo/')
+            try:
+                xml = get_xml(url)
+            except urllib2.HTTPError, e:
+                print e
+                if e.code == 501:
+                    raise NotSupportedError()
+                raise NotImplementedError()
 
 
-        return S2MTV_DeviceInfo(xml)
+            return S2MTV_DeviceInfo(xml)
+        raise NotSupportedError()
 
 class S2MTV_DeviceInfo():
+    """:func:`DeviceControl_S2MTV.getDeviceInfo` Result
+
+    :param xml_element: Result Element Tree
+    """
     def __init__(self, xml_element):
         # Header
         _header = xml_element.find('header')
@@ -71,16 +88,17 @@ class S2MTV_DeviceInfo():
 
 
     def __str__(self):
-        return class_string('S2MTV_DeviceInfo',
-                            headerVersion=self.headerVersion,
-                            headerCode=self.headerCode,
-                            productId=self.productId,
-                            product=self.product)
+        return class_string_instance(self, ['headerVersion', 'headerCode',
+                                            'productId', 'product'])
 
     def __repr__(self):
         return self.__str__()
 
 class S2MTV_Product_DTV():
+    """:class:`S2MTV_DeviceInfo` *DTV* Product Result
+
+    :param xml_element: Result Element Tree
+    """
     def __init__(self, xml_element):
         self.referrerId = xml_element.findtext('referrer_id')
 
@@ -97,16 +115,17 @@ class S2MTV_Product_DTV():
             self.iptv = S2MTV_IPTV_Params(_iptv)
 
     def __str__(self):
-        return class_string('S2MTV_Product_DTV',
-                            referrerId=self.referrerId,
-                            features=self.features,
-                            iptv=self.iptv)
+        return class_string_instance(self, ['referrerId', 'features', 'iptv'])
 
     def __repr__(self):
         return self.__str__()
 
 
 class S2MTV_IPTV_Params():
+    """:class:`S2MTV_Product_DTV` *IPTV* Result
+
+    :param xml_element: Result Element Tree
+    """
     def __init__(self, xml_element):
         self.build = xml_element.findtext('build')
         self.language = xml_element.findtext('language')

@@ -1,6 +1,6 @@
 device
 ==================================
-.. automodule:: device
+.. automodule:: pyircc.device
 
 .. autoclass:: Device
     :members:

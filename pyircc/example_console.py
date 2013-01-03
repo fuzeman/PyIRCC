@@ -1,9 +1,9 @@
 #noinspection PyPackageRequirements
 from twisted.internet import reactor
-from device import Device
-from lib.PyUPnP import SSDP_MSearch, UPnP
-from spec import SONY_UPNP_URN_IRCC
-import unr
+from pyircc.device import Device
+from pyircc.lib.PyUPnP import SSDP_MSearch, UPnP
+from pyircc.spec import SONY_UPNP_URN_IRCC
+from pyircc import unr
 
 __author__ = 'Dean Gardiner'
 

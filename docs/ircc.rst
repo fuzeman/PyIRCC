@@ -1,11 +1,7 @@
 ircc
 ==================================
-.. automodule:: ircc
+.. automodule:: pyircc.ircc
 
 .. autoclass:: DeviceControl_IRCC
-    :members:
-    :inherited-members:
-    
-.. autoclass:: InvalidArgumentError
     :members:
     :inherited-members:

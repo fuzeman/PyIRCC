@@ -1,6 +1,6 @@
 unr
 ==================================
-.. automodule:: unr
+.. automodule:: pyircc.unr
 
 .. autoclass:: DeviceControl_UNR
     :members:
@@ -11,9 +11,5 @@ unr
     :inherited-members:
 
 .. autoclass:: UNR_RemoteCommand
-    :members:
-    :inherited-members:
-
-.. autoclass:: NotRegisteredError
     :members:
     :inherited-members:

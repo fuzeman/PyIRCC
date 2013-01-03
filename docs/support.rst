@@ -1,11 +1,7 @@
 support
 ==================================
-.. automodule:: support
+.. automodule:: pyircc.support
 
 .. autoclass:: SupportBase
-    :members:
-    :inherited-members:
-    
-.. autoclass:: NotSupportedError
     :members:
     :inherited-members:

@@ -1,8 +1,8 @@
 from pysimplesoap.client import SoapClient, SoapFault
-from support import SupportBase, check_support
-from unr import UNR_RemoteCommand
-from util import get_xml, http_get
-from spec import UPNP_XML_SCHEMA_SERVICE as S_SER, SONY_UPNP_URN_IRCC, NotSupportedError, InvalidArgumentError
+from pyircc.support import SupportBase, check_support
+from pyircc.unr import UNR_RemoteCommand
+from pyircc.util import get_xml, http_get
+from pyircc.spec import UPNP_XML_SCHEMA_SERVICE as S_SER, SONY_UPNP_URN_IRCC, NotSupportedError, InvalidArgumentError
 
 __author__ = 'Dean Gardiner'
 
@@ -12,10 +12,6 @@ SUPPORTED_VERSIONS = ('1.0',)
 class DeviceControl_IRCC(SupportBase):
     """DeviceControl IRCC
 
-    :ivar device.Device device: Connected Device
-
-    :ivar string descriptionUrl: IRCC Service Description URL
-    :ivar string controlUrl: IRCC Service Control URL
     :ivar boolean force: Ignore method support limitations
     """
 
@@ -38,6 +34,12 @@ class DeviceControl_IRCC(SupportBase):
         self.available = False
 
     def _setup(self, device, descriptionUrl, controlUrl):
+        """Setup the IRCC control service. (*PRIVATE*)
+
+        :ivar device.Device device: Connected Device
+        :ivar string descriptionUrl: IRCC Service Description URL
+        :ivar string controlUrl: IRCC Service Control URL
+        """
         self._device = device
         self._deviceInfo = device.deviceInfo
         self.version = self._deviceInfo.irccVersion
@@ -70,7 +72,7 @@ class DeviceControl_IRCC(SupportBase):
         :param codeName: Command Name
         :type codeName: string
 
-        :raises: :class:`ircc.InvalidArgumentError`, NotImplementedError
+        :raises: :class:`pyircc.spec.InvalidArgumentError`, NotImplementedError
         """
         print ">>> sendIRCC", codeName
 

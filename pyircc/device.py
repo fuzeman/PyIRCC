@@ -1,8 +1,6 @@
-import ircc
-from pyircc import s2mtv
-from spec import SONY_XML_SCHEMA_AV as S_AV
-import unr
-from util import get_xml
+from pyircc import s2mtv, unr, ircc
+from pyircc.spec import SONY_XML_SCHEMA_AV as S_AV
+from pyircc.util import get_xml
 
 __author__ = 'Dean Gardiner'
 
@@ -11,16 +9,16 @@ class Device():
     """Control Device"""
 
     def __init__(self, force=False):
-        #: (:class:`device.DeviceInfo`) Device Information
+        #: (:class:`pyircc.device.DeviceInfo`) Device Information
         self.deviceInfo = DeviceInfo()
 
-        #: (:class:`ircc.DeviceControl_IRCC`) IRCC Service
+        #: (:class:`pyircc.ircc.DeviceControl_IRCC`) IRCC Service
         self.ircc = ircc.DeviceControl_IRCC(force=force)
 
-        #: (:class:`unr.DeviceControl_UNR`) UNR Service
+        #: (:class:`pyircc.unr.DeviceControl_UNR`) UNR Service
         self.unr = unr.DeviceControl_UNR(force=force)
 
-        #: (:class:`s2mtv.DeviceControl_S2MTV`) S2MTV Service
+        #: (:class:`pyircc.s2mtv.DeviceControl_S2MTV`) S2MTV Service
         self.s2mtv = s2mtv.DeviceControl_S2MTV(force=force)
 
     @staticmethod

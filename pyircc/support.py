@@ -13,18 +13,18 @@ class SupportBase():
         self.force = force
 
     def isSupported(self, name):
-        """Is function supported (by name)?
+        """Is function supported? (by name)
 
         :param name: Function Name
         """
         return (name in self.supportedFunctions) or self.force
 
     def isFunctionSupported(self, function):
-        """Is function supported (by function reference)?
+        """Is function supported? (by function reference)
 
         :param function: Function Reference
 
-        :raises: :class:`support.InvalidFunctionError`
+        :raises: :class:`pyircc.spec.InvalidFunctionError`
         """
         if not hasattr(function, 'bound_function'):
             raise InvalidFunctionError()
@@ -41,4 +41,5 @@ def check_support(f):
         else:
             raise NotSupportedError()
     deco.bound_function = f
+    deco.__doc__ = f.__doc__
     return deco
