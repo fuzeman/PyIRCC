@@ -1,5 +1,5 @@
 import urllib2
-from support import supported, SupportBase, NotSupportedError
+from support import SupportBase, NotSupportedError, check_support
 from util import get_xml, http_get, class_string
 import xml.etree.ElementTree as et
 
@@ -52,7 +52,7 @@ class DeviceControl_UNR(SupportBase):
 
         print "construct unr"
 
-    @supported
+    @check_support
     def getSystemInformation(self):
         """Get Device System Information
 
@@ -76,7 +76,7 @@ class DeviceControl_UNR(SupportBase):
             return self.systemInformation
         raise NotSupportedError()
 
-    @supported
+    @check_support
     def register(self, name="PyIRCC", registrationType='initial', deviceId="PyIRCC:00-00-00-00-00-00"):
         """Register with Device
 
@@ -116,7 +116,7 @@ class DeviceControl_UNR(SupportBase):
             return UNR_REGISTER_RESULT_OK
         raise NotSupportedError()
 
-    @supported
+    @check_support
     def getRemoteCommandList(self):
         """Get Device Remote Commands
 
@@ -170,6 +170,8 @@ class DeviceControl_UNR(SupportBase):
             if self.actionUrls.has_key(name):
                 raise Exception()
             self.actionUrls[name] = action.get('url').replace(':80:80', ':80')  # TODO: what is happening here?
+
+            print "unr supported:", name
 
 
 class UNR_SystemInformationResult():

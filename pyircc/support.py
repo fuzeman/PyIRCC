@@ -1,10 +1,10 @@
-import functools
-from decorator import decorator
-
 __author__ = 'Dean Gardiner'
 
 
 class NotSupportedError(BaseException):
+    pass
+
+class InvalidFunctionError(BaseException):
     pass
 
 
@@ -29,26 +29,21 @@ class SupportBase():
 
         :param function: Function Reference
 
-        :raises: :class:`ircc.InvalidArgumentError`
+        :raises: :class:`support.InvalidFunctionError`
         """
-        if not isinstance(function, functools.partial):
+        if not hasattr(function, 'bound_function'):
+            raise InvalidFunctionError()
+        return self.isSupported(function.bound_function.__name__)
+
+
+def check_support(f):
+    def deco(self, *args, **kwargs):
+        if not isinstance(self, SupportBase):
+            raise InvalidFunctionError()
+
+        if self.isSupported(f.__name__) or self.force:
+            return f(self, *args, **kwargs)
+        else:
             raise NotSupportedError()
-        return self.isSupported(function.args[0].f.__name__)
-
-
-@decorator
-class supported(object):
-    def __init__(self, f):
-        self.f = f
-
-    def __call__(self, dec, *args, **kwargs):
-        if not isinstance(args[0], SupportBase):
-            raise NotSupportedError()
-
-        if not self.f.__name__ in args[0].supportedFunctions:
-            raise NotSupportedError()
-
-        return self.f(*args, **kwargs)
-
-    def __get__(self, instance, owner):
-        return functools.partial(self.__call__, self, instance)
+    deco.bound_function = f
+    return deco

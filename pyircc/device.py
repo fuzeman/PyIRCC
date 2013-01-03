@@ -1,4 +1,5 @@
 import ircc
+from pyircc import s2mtv
 from spec import SONY_XML_SCHEMA_AV as S_AV
 import unr
 from util import get_xml
@@ -19,8 +20,11 @@ class Device():
         #: (:class:`unr.DeviceControl_UNR`) UNR Service
         self.unr = None
 
+        #: (:class:`s2mtv.DeviceControl_S2MTV`) S2MTV Service
+        self.s2mtv = None
+
     @staticmethod
-    def connect(deviceDescriptionURL, irccServiceDescURL=None, irccServiceControlURL=None):
+    def connect(deviceDescriptionURL, irccServiceDescURL=None, irccServiceControlURL=None, force=False):
         """Connect to device.
 
         :param deviceDescriptionURL: UPnP Device Description URL (device location)
@@ -41,13 +45,17 @@ class Device():
 
         # UNR / CERS
         if device.deviceInfo.unrVersion in unr.SUPPORTED_VERSIONS:
-            device.unr = unr.DeviceControl_UNR(device)
+            device.unr = unr.DeviceControl_UNR(device, force=force)
 
         # IRCC
         if device.deviceInfo.irccVersion in ircc.SUPPORTED_VERSIONS and\
            irccServiceDescURL is not None and\
            irccServiceControlURL is not None:
-            device.ircc = ircc.DeviceControl_IRCC(device, irccServiceDescURL, irccServiceControlURL)
+            device.ircc = ircc.DeviceControl_IRCC(device, irccServiceDescURL, irccServiceControlURL, force=force)
+
+        # S2MTV
+        if device.deviceInfo.s2mtvVersion in s2mtv.SUPPORTED_VERSIONS:
+            device.s2mtv = s2mtv.DeviceControl_S2MTV(device, force=force)
 
         return device
 

@@ -1,5 +1,5 @@
 from pysimplesoap.client import SoapClient, SoapFault
-from support import SupportBase, supported, NotSupportedError
+from support import SupportBase, NotSupportedError, check_support
 from unr import UNR_RemoteCommand
 from util import get_xml, http_get
 from spec import UPNP_XML_SCHEMA_SERVICE as S_SER, SONY_UPNP_URN_IRCC
@@ -57,7 +57,7 @@ class DeviceControl_IRCC(SupportBase):
             )
             print "client loaded"
 
-    @supported
+    @check_support
     def sendIRCC(self, codeName):
         """Send Remote Command
 
@@ -71,7 +71,7 @@ class DeviceControl_IRCC(SupportBase):
         if codeName is None:
             return
 
-        if self.version == '1.0':
+        if self.version == '1.0' or self.force:
             self._load()
 
             if not self.device.unr.remoteCommands.has_key(codeName):

@@ -46,10 +46,12 @@ def main():
             return
 
         # Send IRCC Command (X_SendIRCC)
-        if not c.ircc.isFunctionSupported(c.ircc.sendIRCC):
-            print "'sendIRCC' not supported"
-            return
-        tr = c.ircc.sendIRCC('Tv_Radio')
+        #if not c.ircc.isFunctionSupported(c.ircc.sendIRCC):
+        #    print "'sendIRCC' not supported"
+        #    return
+        #tr = c.ircc.sendIRCC('Tv_Radio')
+
+        c.s2mtv.getDeviceInfo()
 
     def selectService(numServices):
         deviceNum = None
