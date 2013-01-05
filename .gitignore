@@ -4,3 +4,7 @@
 /docs/_build
 /docs/_static
 /docs/_templates
+
+/PyIRCC.egg-info
+/build
+/dist
